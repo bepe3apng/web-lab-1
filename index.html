@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивная игра для приемной кампании</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+        }
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        #background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('before_hall.png') no-repeat center center/cover;
+        }
+        #character {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: url('priem.png') no-repeat center center/contain;
+            width: 66%;
+            height: 66%;
+        }
+        #text-box {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .choice {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            background: #444;
+            color: #fff;
+            text-align: center;
+            cursor: pointer;
+        }
+        .choice:hover {
+            background: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="background"></div>
+        <div id="character"></div>
+        <div id="text-box">
+            <p id="text"></p>
+            <div id="choices"></div>
+        </div>
+    </div>
+
+    <script>
+    const scenes = [
+        {
+	background: 'before_hall.png',
+            text: "Как к тебе обращаться?",
+            choices: [
+                { text: "Абитуриент", nextScene: 1 }
+            ]
+        },
+        {
+background: 'before_hall.png',
+            text: "Приветствую, Абитуриент! Добро пожаловать в ИРНИТУ! У нас сегодня день открытых дверей. Вы можете свободно проходить по институту, послушать лекции и познакомиться с преподавателями. А ещё держите карту, она вам сегодня пригодится.",
+            choices: [
+                { text: "Продолжить", nextScene: 2 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Не забудьте, что через 30 минут начнётся лекция в большом амфитеатре.",
+            choices: [
+                { text: "А что это за лекция? Интересно, кто её ведёт?", nextScene: 3 },
+                { text: "Это здорово! Я надеюсь, будут интересные темы. Кто будет выступать?", nextScene: 4 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Сегодня лекцию проводит преподаватель Говорков — он расскажет о современных тенденциях в информационных технологиях.",
+            choices: [
+                { text: "Продолжить", nextScene: 5 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Да, сегодня у нас выступает преподаватель Говорков, известный своим доступным объяснением сложных концепций в IT!",
+            choices: [
+                { text: "Продолжить", nextScene: 5 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Эй, вы идёте на лекцию Говоркова? Он всегда знает, как заинтересовать!",
+            choices: [
+                { text: "Промолчать", nextScene: 6 },
+                { text: "Да, я собираюсь! Что именно тебе нравится в его лекциях?", nextScene: 7 },
+                { text: "Нет, я пока не решил. Как думаешь, достойно ли это внимания?", nextScene: 8 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Не переживайте, у него всегда интересно!",
+            choices: [
+                { text: "Продолжить", nextScene: 9 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Мне нравится, что он объясняет сложные вещи простыми словами. Я даже начал разбираться в таких темах, о которых и не подозревал!",
+            choices: [
+                { text: "Продолжить", nextScene: 9 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Определенно стоит! На последней нашей лекции он говорил о развитии искусственного интеллекта. Вы не пожалеете, если послушаете его.",
+            choices: [
+                { text: "Продолжить", nextScene: 9 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Присутствие на этой лекции - отличная возможность узнать что-то новое! Вы собираетесь идти?",
+            choices: [
+                { text: "Да, я собираюсь! Мне интересно, как технологии меняют мир.", nextScene: 10 },
+                { text: "Наверное, загляну. Но у меня есть другие вопросы — что ещё можно посмотреть сегодня?", nextScene: 11 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Отличный выбор! Надеюсь, вам понравится.",
+            choices: [
+                { text: "Продолжить", nextScene: 12 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Кроме лекций, у нас будет несколько интересных демонстраций в лабораторном классе и компьютерном классе.",
+            choices: [
+                { text: "Продолжить", nextScene: 12 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Как найти лабораторный класс? Я слышал, что сегодня там занятие для абитуриентов.",
+            choices: [
+                { text: "О, круто! Я люблю технологии. Вы не подскажете, во сколько начнется занятие?", nextScene: 13 },
+                { text: "Я тоже собирался это спросить. Не подскажете, где именно находится аудитория?", nextScene: 14 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Да, конечно. Занятие в лабораторном классе начнется через два часа, после вступительной лекции в амфитеатре.",
+            choices: [
+                { text: "Продолжить", nextScene: 15 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Лабораторный класс находится на втором этаже, в конце коридора. Взгляните на карту института.",
+            choices: [
+                { text: "Продолжить", nextScene: 15 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Ты не поверишь, я все еще не выбрала тему для курсовой! У меня два дня на это!",
+            choices: [
+                { text: "Сходи в библиотеку, пока ещё есть время!", nextScene: 16 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Сегодня вы сможете поработать в компьютерном классе на новейших компьютерах с интерактивной доской.",
+            choices: [
+                { text: "Продолжить", nextScene: 17 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Слышал, что там крутые компьютеры. Интересно, как они работают!",
+            choices: [
+                { text: "Продолжить", nextScene: 18 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Слышал, что в нашей столовой подают вкусные пельмени. Как дойти туда?",
+            choices: [
+                { text: "Продолжить", nextScene: 19 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Уже предвкушаете перерыв? 'Бузы Вуза' находится в подвале, рядом с гардеробом. Нужно просто спуститься по центральной лестнице.",
+            choices: [
+                { text: "Продолжить", nextScene: 20 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Отлично, пойду туда после лекции! А что ещё там есть на выбор?",
+            choices: [
+                { text: "Продолжить", nextScene: 21 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Пельмени звучат заманчиво! Вы туда часто заходите?",
+            choices: [
+                { text: "Продолжить", nextScene: 22 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Могу взять эту карту? Я не хочу потеряться!",
+            choices: [
+                { text: "Да", nextScene: 23 },
+                { text: "Прости, но нет", nextScene: 24 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Да конечно, держи.",
+            choices: [
+                { text: "Продолжить", nextScene: 25 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Прости, но я сам плохо ориентируюсь в Политехе.",
+            choices: [
+                { text: "Продолжить", nextScene: 25 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Конечно! Вот вам план нашего института. Это поможет вам найти все необходимые аудитории. Удачного дня, и не забывайте спрашивать — мы здесь, чтобы помочь!",
+            choices: [
+                { text: "Спасибо! Ещё подскажите, где я могу узнать о расписании экскурсий?", nextScene: 26 },
+                { text: "Спасибо! А есть ли какие-то мероприятия, которые я точно не должен пропустить сегодня?", nextScene: 27 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Расписание экскурсий также можно увидеть на стене в холле.",
+            choices: [
+                { text: "Продолжить", nextScene: 28 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Обратите внимание на семинар в 'Точке Кипения' и показы в лабораторном классе!",
+            choices: [
+                { text: "Продолжить", nextScene: 28 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "О, эта новая программа по обработке данных просто огонь!",
+            choices: [
+                { text: "Подойти ближе", nextScene: 29 },
+                { text: "Игнорировать и продолжать путь к амфитеатру.", nextScene: 32 },
+                { text: "Отправиться на поиски амфитеатра", nextScene: 32 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Привет, о каком приложении речь?",
+            choices: [
+                { text: "Продолжить", nextScene: 30 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "О, это новое приложение, которое помогает обрабатывать большие объёмы данных. Мы только начали изучать его возможности.",
+            choices: [
+                { text: "Продолжить", nextScene: 31 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Звучит круто, но я бы не отказался сначала узнать больше о проекте.",
+            choices: [
+                { text: "Продолжить", nextScene: 31 }
+            ]
+        },
+        {
+background: 'hall.png',
+            text: "Конец ДЕМО-версии",
+            choices: [
+                { }
+            ]
+        },
+	];
+        let currentSceneIndex = 0;
+
+        function displayScene(index) {
+            const scene = scenes[index];
+            document.getElementById('background').style.backgroundImage = `url('${scene.background}')`;
+            document.getElementById('text').innerText = scene.text;
+            const choicesDiv = document.getElementById('choices');
+            choicesDiv.innerHTML = '';
+
+            scene.choices.forEach(choice => {
+                const choiceElement = document.createElement('div');
+                choiceElement.className = 'choice';
+                choiceElement.innerText = choice.text;
+                choiceElement.onclick = () => displayScene(choice.nextScene);
+                choicesDiv.appendChild(choiceElement);
+            });
+        }
+
+        displayScene(currentSceneIndex);
+    </script>
+</body>
+</html>
